@@ -12,7 +12,7 @@ export function createBricks(grid, blockSize, canvas) {
       if (grid[row][col] === 1) {
         let brick = {
           x: col * blockSize + offsetX,
-          y: -blockSize - 4000 + row * 300,
+          y: -blockSize - 4000 + row * 400,
           targetY: row * blockSize + offsetY,
           speed: Math.random() * 200 + 1200,
           color: colors[Math.floor(Math.random() * colors.length)], //aléatoire

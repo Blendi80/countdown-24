@@ -42,9 +42,8 @@ function resetGame() {
   drawButton();
 }
 
-// Gestion du clic sur une brique
 canvas.addEventListener("click", (event) => {
-  if (!gameStarted) return; // Si le jeu n'est pas encore démarré, on ne fait rien
+  if (!gameStarted) return;
 
   // Calculer les coordonnées du clic par rapport au canevas
   const rect = canvas.getBoundingClientRect();
