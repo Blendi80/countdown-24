@@ -1,6 +1,6 @@
 import { createEngine } from "../../shared/engine.js";
 
-const { renderer, run, finish } = createEngine();
+const { renderer, run, finish, audio } = createEngine();
 const { ctx, canvas } = renderer;
 
 let zoomLevel = 0.1;

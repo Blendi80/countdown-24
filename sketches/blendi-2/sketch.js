@@ -4,8 +4,16 @@ import { createEngine } from "../../shared/engine.js";
 const { renderer, input, run, pixelRatio, finish, audio } = createEngine(); // Gardez l'import `finish` si nécessaire dans `createEngine`
 const { ctx, canvas } = renderer;
 
-const click2 = await audio.load("./click22.mp3");
-click2.volume = 0.2;
+const click22 = await audio.load({
+  src: "./click22.mp3",
+});
+const gameover = await audio.load({
+  src: "./game-over.mp3",
+});
+const gamestart = await audio.load({
+  src: "./game-start.mp3",
+});
+
 const blockSize = 120;
 const lightColor = "#f8f9fa";
 const shadowColor = "#6c757d";
@@ -73,6 +81,7 @@ canvas.addEventListener("click", (event) => {
     ) {
       console.log("Brique cliquée :", brick);
       bricks.forEach((b) => {
+        gameover.play({ volume: 0.04 });
         b.targetY = canvas.height + blockSize;
         b.speed = Math.random() * 1400 + 800; // Vitesse de chute
       });
@@ -88,7 +97,7 @@ function update(dt) {
   if (!gameStarted) {
     drawButton();
     document.getElementById("startButton").addEventListener("click", () => {
-      click22.play();
+      click22.play({ volume: 0.04 });
       gameStarted = true;
       initBricks();
       hideButton();
@@ -99,7 +108,12 @@ function update(dt) {
         brick.y += brick.speed * dt;
       } else {
         brick.y = brick.targetY;
+        if (!brick.hasFallen) {
+          gamestart.play({ volume: 0.3 }); // Joue le son de chute
+          brick.hasFallen = true; // Empêche de rejouer le son à chaque chute
+        }
       }
+
       drawBrick(brick, ctx, lightColor, shadowColor, blockSize);
     });
 

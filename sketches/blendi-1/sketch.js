@@ -1,11 +1,19 @@
 import { createEngine } from "../../shared/engine.js";
 
-const { renderer, input, run, finish } = createEngine();
+const { renderer, input, run, finish, audio } = createEngine();
 const { ctx, canvas } = renderer;
 
 const oneSize = canvas.height;
 const oneCanvas = new OffscreenCanvas(oneSize, oneSize);
 const oneCtx = oneCanvas.getContext("2d");
+const magic = await audio.load({
+  src: "./magic.mp3",
+});
+const pixel = await audio.load({
+  src: "./pixel-1.mp3",
+});
+
+let soundPlayed = false;
 
 run(update);
 
@@ -68,6 +76,12 @@ function updateParticles(deltaTime) {
 
 function drawParticles() {
   ctx.fillStyle = "white";
+
+  // ici le son de l'explosion
+  if (!soundPlayed) {
+    soundPlayed = true;
+    magic.play({ volume: 0.1 });
+  }
   for (const particle of particles) {
     const taille = particle.life * 10; //taille
     ctx.fillRect(particle.x, particle.y, taille, taille);
@@ -125,6 +139,7 @@ function update() {
     ) {
       square.visible = false;
       pixelsRevealed++;
+      pixel.play({ volume: 1 });
     }
   }
 
