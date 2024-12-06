@@ -1,13 +1,16 @@
 import { createBricks, drawBrick } from "./bricks.js";
 import { createEngine } from "../../shared/engine.js";
-const { renderer, input, run } = createEngine();
+
+const { renderer, input, run, pixelRatio, finish, audio } = createEngine(); // Gardez l'import `finish` si nécessaire dans `createEngine`
 const { ctx, canvas } = renderer;
 
+const click2 = await audio.load("./click22.mp3");
+click2.volume = 0.2;
 const blockSize = 120;
-const lightColor = "#f8f9fa"; // C.lumineuse
-const shadowColor = "#6c757d"; // C.sombre
+const lightColor = "#f8f9fa";
+const shadowColor = "#6c757d";
 
-// grille
+// Grille
 const grid = [
   [0, 1, 1, 1, 1, 1, 0],
   [1, 1, 0, 0, 0, 1, 1],
@@ -21,39 +24,46 @@ const grid = [
 let bricks = [];
 let gameStarted = false;
 
+// Initialise les briques
 function initBricks() {
   bricks = createBricks(grid, blockSize, canvas);
   console.log("Briques initialisées :", bricks);
 }
 
+// Affiche le bouton
 function drawButton() {
   const button = document.getElementById("startButton");
   button.style.display = "block"; // Montre le bouton
 }
 
+// Cache le bouton
 function hideButton() {
   const button = document.getElementById("startButton");
   button.style.display = "none"; // Cache le bouton
 }
 
+// Réinitialise le jeu
 function resetGame() {
   initBricks();
   gameStarted = false;
   drawButton();
 }
 
+function endGame() {
+  const allBricksFallen = bricks.every((brick) => brick.y >= canvas.height);
+  if (allBricksFallen) {
+    finish();
+  }
+}
+
+// Gère les clics sur le canevas
 canvas.addEventListener("click", (event) => {
   if (!gameStarted) return;
 
-  // Calculer les coordonnées du clic par rapport au canevas
   const rect = canvas.getBoundingClientRect();
-  const offsetX = event.clientX - rect.left;
-  const offsetY = event.clientY - rect.top;
+  const offsetX = (event.clientX - rect.left) * pixelRatio;
+  const offsetY = (event.clientY - rect.top) * pixelRatio;
 
-  // Affichage des coordonnées du clic dans la console pour déboguer
-  console.log(`Clic à : X = ${offsetX}, Y = ${offsetY}`);
-
-  // Vérifier si la position du clic touche une brique
   bricks.forEach((brick) => {
     if (
       offsetX > brick.x &&
@@ -61,15 +71,10 @@ canvas.addEventListener("click", (event) => {
       offsetY > brick.y &&
       offsetY < brick.y + blockSize
     ) {
-      // Message de débogage pour vérifier si une brique est bien cliquée
       console.log("Brique cliquée :", brick);
-
-      // Dès qu'une brique est cliquée, toutes les briques commencent à tomber
       bricks.forEach((b) => {
-        // Application d'une chute avec easing
         b.targetY = canvas.height + blockSize;
-        b.speed = Math.random() * 300 + 100; // Augmentation de la vitesse de chute
-        b.fallingWithEasing = true; // Marque la chute avec easing
+        b.speed = Math.random() * 1400 + 800; // Vitesse de chute
       });
     }
   });
@@ -82,8 +87,8 @@ function update(dt) {
 
   if (!gameStarted) {
     drawButton();
-
     document.getElementById("startButton").addEventListener("click", () => {
+      click22.play();
       gameStarted = true;
       initBricks();
       hideButton();
@@ -91,22 +96,15 @@ function update(dt) {
   } else {
     bricks.forEach((brick) => {
       if (brick.y < brick.targetY) {
-        // Si la brique est en train de tomber
-        if (brick.fallingWithEasing) {
-          // Chute avec easing
-          const deltaY = brick.targetY - brick.y;
-          const easeValue = Math.pow(deltaY / (canvas.height + blockSize), 3); // Easing "easeInExpo"
-          brick.y += easeValue * brick.speed * dt;
-        } else {
-          // Chute rapide initiale sans easing (première chute)
-          brick.y += brick.speed * dt;
-        }
+        brick.y += brick.speed * dt;
       } else {
         brick.y = brick.targetY;
       }
-
       drawBrick(brick, ctx, lightColor, shadowColor, blockSize);
     });
+
+    // Vérifie la fin du jeu
+    endGame();
   }
 }
 
